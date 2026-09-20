@@ -1,18 +1,21 @@
-const make = (name: string) => () => <div className="p-8">{name}</div>
+import { useContextPanel } from "@/app/context-panel"
+import { Button } from "@/components/ui/button"
 
-export const Login = make("Login")
-export const ForgotPassword = make("Forgot Password")
-export const ResetPassword = make("Reset Password")
-export const Verify = make("Verify")
-export const Onboarding = make("Onboarding")
-export const WorkspaceSelector = make("Workspace Selector")
-export const Home = make("Home")
-export const Documents = make("Documents")
-export const DocumentEditor = make("Document Editor")
-export const Whiteboard = make("Whiteboard")
-export const Chat = make("Chat")
-export const Activity = make("Activity")
-export const Members = make("Members")
-export const WorkspaceSettings = make("Workspace Settings")
-export const ProfileSettings = make("Profile Settings")
-export const NotFound = make("404 — Not Found")
+export function DocumentEditor() {
+  const { open } = useContextPanel()
+  return (
+    <div className="p-8">
+      <Button
+        onClick={() =>
+          open([
+            { value: "comments", label: "Comments", content: "Comments slot" },
+            { value: "history", label: "History", content: "History slot" },
+            { value: "people", label: "People", content: "People slot" },
+          ])
+        }
+      >
+        Open context panel
+      </Button>
+    </div>
+  )
+}
