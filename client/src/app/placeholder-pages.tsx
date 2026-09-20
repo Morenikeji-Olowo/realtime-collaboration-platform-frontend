@@ -1,0 +1,18 @@
+const make = (name: string) => () => <div className="p-8">{name}</div>
+
+export const Login = make("Login")
+export const ForgotPassword = make("Forgot Password")
+export const ResetPassword = make("Reset Password")
+export const Verify = make("Verify")
+export const Onboarding = make("Onboarding")
+export const WorkspaceSelector = make("Workspace Selector")
+export const Home = make("Home")
+export const Documents = make("Documents")
+export const DocumentEditor = make("Document Editor")
+export const Whiteboard = make("Whiteboard")
+export const Chat = make("Chat")
+export const Activity = make("Activity")
+export const Members = make("Members")
+export const WorkspaceSettings = make("Workspace Settings")
+export const ProfileSettings = make("Profile Settings")
+export const NotFound = make("404 — Not Found")

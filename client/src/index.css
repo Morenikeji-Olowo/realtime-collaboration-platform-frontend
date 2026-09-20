@@ -25,7 +25,11 @@
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
     --color-success: var(--success);
+    --color-success-text: var(--success-text);
+    --color-warning-text: var(--warning-text);
+    --color-info-text: var(--info-text);
     --color-success-foreground: var(--success-foreground);
     --color-warning: var(--warning);
     --color-warning-foreground: var(--warning-foreground);
@@ -69,13 +73,14 @@
     --muted-foreground: oklch(0.552 0.016 285.938);
     --accent: oklch(0.967 0.001 286.375);
     --accent-foreground: oklch(0.21 0.006 285.885);
-    --destructive: oklch(0.577 0.245 27.325);
+    --destructive: oklch(0.46 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
     --success: oklch(0.627 0.194 149.214);
-    --success-foreground: oklch(0.985 0 0);
+    --success-foreground: oklch(0.21 0.006 285.885);
     --warning: oklch(0.769 0.188 70.08);
     --warning-foreground: oklch(0.21 0.006 285.885);
     --info: oklch(0.685 0.169 237.323);
-    --info-foreground: oklch(0.985 0 0);
+    --info-foreground: oklch(0.21 0.006 285.885);
     --border: oklch(0.92 0.004 286.32);
     --input: oklch(0.92 0.004 286.32);
     --ring: oklch(0.511 0.262 276.966);
@@ -93,6 +98,9 @@
     --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
     --sidebar-border: oklch(0.92 0.004 286.32);
     --sidebar-ring: oklch(0.511 0.262 276.966);
+    --success-text: oklch(0.43 0.194 149.214);
+    --warning-text: oklch(0.46 0.188 70.08);
+    --info-text: oklch(0.44 0.169 237.323);
 }
 
 .dark {
@@ -111,6 +119,7 @@
     --accent: oklch(0.274 0.006 286.033);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: oklch(0.141 0.005 285.823);
     --success: oklch(0.792 0.209 151.711);
     --success-foreground: oklch(0.141 0.005 285.823);
     --warning: oklch(0.828 0.189 84.429);
@@ -133,6 +142,10 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.673 0.182 276.935);
+
+    --success-text: var(--success);
+    --warning-text: var(--warning);
+    --info-text: var(--info);
 }
 
 @layer base {
@@ -145,4 +158,15 @@
   html {
     @apply font-sans;
     }
+
+  @media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 }
