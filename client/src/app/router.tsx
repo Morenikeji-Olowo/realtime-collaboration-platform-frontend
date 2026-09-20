@@ -7,6 +7,7 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* <Route path="/" element={<Pages.Home />} /> */}
         <Route element={<RequireGuest />}>
           <Route path="/login" element={<Pages.Login />} />
           <Route path="/forgot-password" element={<Pages.ForgotPassword />} />
