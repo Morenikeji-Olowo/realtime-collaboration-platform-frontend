@@ -1,40 +1,26 @@
-import { Link, useLocation, useParams } from "react-router"
+import { Link, useLocation, useNavigate, useParams } from "react-router"
 import {
-  HomeIcon,
-  FileTextIcon,
-  PenToolIcon,
-  MessageSquareIcon,
-  BellIcon,
-  UsersIcon,
-  SettingsIcon,
-  KeyboardIcon,
-  SearchIcon,
+  HomeIcon, FileTextIcon, PenToolIcon, MessageSquareIcon,
+  BellIcon, UsersIcon, SettingsIcon, KeyboardIcon, SearchIcon,
 } from "lucide-react"
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup,
+  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { WorkspaceSwitcher } from "@/features/workspaces/components/workspace-switcher"
+import { useWorkspaces } from "@/features/workspaces/hooks/use-workspaces"
+import { useCurrentUser } from "@/features/users/hooks/use-current-user"
+import { getInitials } from "@/features/users/lib/get-initials"
 
-// TODO: replace with real data once workspace/user TanStack Query hooks exist
-const MOCK_WORKSPACES = [{ id: "demo", name: "Demo Workspace" }]
-const MOCK_USER = { name: "Keji", initials: "KJ" }
-
-export function WorkspaceSidebar({
-  onOpenSearch,
-}: {
-  onOpenSearch: () => void
-}) {
+export function WorkspaceSidebar({ onOpenSearch }: { onOpenSearch: () => void }) {
   const { pathname } = useLocation()
   const { workspaceId } = useParams()
+  const navigate = useNavigate()
+  const { data: workspaces = [] } = useWorkspaces()
+  const { data: currentUser } = useCurrentUser()
   const base = `/w/${workspaceId}`
+
 
   const navItems = [
     { label: "Home", to: base, icon: HomeIcon, end: true },
@@ -52,9 +38,9 @@ export function WorkspaceSidebar({
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <WorkspaceSwitcher
-          workspaces={MOCK_WORKSPACES}
-          activeWorkspaceId={workspaceId ?? MOCK_WORKSPACES[0].id}
-          onSelect={() => {}}
+          workspaces={workspaces}
+          activeWorkspaceId={workspaceId ?? ""}
+          onSelect={(id) => navigate(`/w/${id}`)}
           onCreateWorkspace={() => {}}
         />
         <SidebarMenu>
@@ -106,13 +92,14 @@ export function WorkspaceSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            {/* TODO: wire to real user session + profile menu */}
-            <SidebarMenuButton asChild tooltip={MOCK_USER.name} size="lg">
+            <SidebarMenuButton asChild tooltip={currentUser?.name ?? ""} size="lg">
               <Link to="/settings/profile">
                 <Avatar className="size-6">
-                  <AvatarFallback>{MOCK_USER.initials}</AvatarFallback>
+                  <AvatarFallback>
+                    {currentUser ? getInitials(currentUser.name) : ""}
+                  </AvatarFallback>
                 </Avatar>
-                <span>{MOCK_USER.name}</span>
+                <span>{currentUser?.name ?? "Loading..."}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router"
-import { RequireAuth, RequireGuest, WorkspaceEntryRedirect, RequireWorkspaceMembership } from "@/app/guards"
+import { RequireAuth, RequireGuest, RequireUnverified, WorkspaceEntryRedirect, RequireWorkspaceMembership } from "@/app/guards"
 import { WorkspaceLayout } from "@/app/workspace-layout"
 import * as Pages from "@/app/placeholder-pages"
 
@@ -7,11 +7,13 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* <Route path="/" element={<Pages.Home />} /> */}
         <Route element={<RequireGuest />}>
           <Route path="/login" element={<Pages.Login />} />
           <Route path="/forgot-password" element={<Pages.ForgotPassword />} />
           <Route path="/reset-password" element={<Pages.ResetPassword />} />
+        </Route>
+
+        <Route element={<RequireUnverified />}>
           <Route path="/verify" element={<Pages.Verify />} />
         </Route>
 
@@ -19,7 +21,6 @@ export function AppRouter() {
           <Route path="/onboarding" element={<Pages.Onboarding />} />
           <Route path="/workspaces" element={<Pages.WorkspaceSelector />} />
           <Route path="/settings/profile" element={<Pages.ProfileSettings />} />
-
           <Route path="/" element={<WorkspaceEntryRedirect />} />
 
           <Route path="/w/:workspaceId" element={<RequireWorkspaceMembership />}>
