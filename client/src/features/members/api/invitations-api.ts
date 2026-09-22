@@ -13,3 +13,6 @@ export function rejectInvitation(invitationId: string) {
     method: "POST",
   })
 }
+export function listInvitations(workspaceId: string) {
+  return apiFetch<Invitation[]>(`/api/workspaces/${workspaceId}/invitations`)
+}

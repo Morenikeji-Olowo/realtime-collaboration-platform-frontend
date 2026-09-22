@@ -7,4 +7,5 @@ export type Invitation = {
   status: string
   created_at: string
   expires_at: string
+  email_sent: boolean
 }

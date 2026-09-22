@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getInitials } from "@/features/users/lib/get-initials"
+import { useCurrentUser } from "@/features/users/hooks/use-current-user"
 import type { Member } from "@/features/members/types/member"
 
 export function MemberList({
@@ -12,6 +13,8 @@ export function MemberList({
   members: Member[] | undefined
   isLoading: boolean
 }) {
+  const { data: currentUser } = useCurrentUser()
+
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -33,18 +36,25 @@ export function MemberList({
 
   return (
     <div className="space-y-2">
-      {members.map((member) => (
-        <div key={member.id} className="flex items-center gap-3 rounded-lg border p-3">
-          <Avatar>
-            <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-medium">{member.name}</p>
-            <p className="truncate text-sm text-muted-foreground">{member.email}</p>
+      {members.map((member) => {
+        const isYou = member.id === currentUser?.id
+
+        return (
+          <div key={member.id} className="flex items-center gap-3 rounded-lg border p-3">
+            <Avatar>
+              <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium">
+                {member.name}
+                {isYou && <span className="ml-2 text-sm font-normal text-muted-foreground">(you)</span>}
+              </p>
+              <p className="truncate text-sm text-muted-foreground">{member.email}</p>
+            </div>
+            <Badge variant="secondary" className="capitalize">{member.role}</Badge>
           </div>
-          <Badge variant="secondary" className="capitalize">{member.role}</Badge>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

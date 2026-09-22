@@ -12,3 +12,7 @@ export function inviteMember(workspaceId: string, email: string) {
     body: JSON.stringify({ email }),
   })
 }
+
+export function listInvitations(workspaceId: string) {
+  return apiFetch<Invitation[]>(`/api/workspaces/${workspaceId}/invitations`)
+}

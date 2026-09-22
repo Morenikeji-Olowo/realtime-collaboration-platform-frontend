@@ -23,8 +23,12 @@ export function InviteMemberDialog({
 
   function onSubmit(data: InviteInput) {
     inviteMember.mutate(data.email, {
-      onSuccess: () => {
-        toast.success(`Invitation sent to ${data.email}`)
+      onSuccess: (invitation) => {
+        if (invitation.email_sent) {
+          toast.success(`Invitation sent to ${data.email}`)
+        } else {
+          toast.warning(`Invitation created, but the email couldn't be delivered to ${data.email}`)
+        }
         reset()
         onOpenChange(false)
       },

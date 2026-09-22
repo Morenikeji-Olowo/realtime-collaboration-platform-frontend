@@ -19,6 +19,13 @@ import { InviteMemberDialog } from "@/features/members/components/invite-member-
 import { useCurrentWorkspaceRole } from "@/features/workspaces/hooks/use-current-workspace-role"
 import { useAcceptInvitation } from "@/features/members/hooks/use-accept-invitation"
 import { useRejectInvitation } from "@/features/members/hooks/use-reject-invitation"
+import { useInvitations } from "@/features/members/hooks/use-invitations"
+import { PendingInvitationsList } from "@/features/members/components/pending-invitations-list"
+import { useMessageHistory } from "@/features/chat/hooks/use-message-history"
+import { useChatSocket } from "@/features/chat/hooks/use-chat-socket"
+import { MessageList } from "@/features/chat/components/message-list"
+import { MessageComposer } from "@/features/chat/components/message-composer"
+import { usePresenceStore } from "@/stores/presence-store"
 
 const make = (name: string) => () => <div className="p-8">{name}</div>
 
@@ -121,20 +128,32 @@ export function Members() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const { data: members, isLoading } = useMembers(workspaceId!)
   const role = useCurrentWorkspaceRole()
+  const isOwner = role === "owner"
+  const { data: invitations, isLoading: invitationsLoading } = useInvitations(workspaceId!, isOwner)
   const [inviteOpen, setInviteOpen] = React.useState(false)
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <Title className="text-2xl">Members</Title>
-        {role === "owner" && (
-          <Button onClick={() => setInviteOpen(true)}>
-            <PlusIcon />
-            Invite member
-          </Button>
-        )}
+    <div className="space-y-8 p-6">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Title className="text-2xl">Members</Title>
+          {isOwner && (
+            <Button onClick={() => setInviteOpen(true)}>
+              <PlusIcon />
+              Invite member
+            </Button>
+          )}
+        </div>
+        <MemberList members={members} isLoading={isLoading} />
       </div>
-      <MemberList members={members} isLoading={isLoading} />
+
+      {isOwner && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-medium text-muted-foreground">Pending invitations</h2>
+          <PendingInvitationsList invitations={invitations} isLoading={invitationsLoading} />
+        </div>
+      )}
+
       <InviteMemberDialog
         workspaceId={workspaceId!}
         open={inviteOpen}
@@ -223,6 +242,24 @@ export function InvitationAccept() {
   )
 }
 
+export function Chat() {
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const { data: messages, isLoading } = useMessageHistory(workspaceId!)
+  const { sendMessage, isSending } = useChatSocket(workspaceId!)
+  const onlineCount = usePresenceStore((s) => s.onlineUserIds.size)
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between border-b p-4">
+        <Title className="text-xl">Chat</Title>
+        <Muted>{onlineCount} online</Muted>
+      </div>
+      <MessageList workspaceId={workspaceId!} messages={messages} isLoading={isLoading} />
+      <MessageComposer onSend={sendMessage} isSending={isSending} />
+    </div>
+  )
+}
+
 export const ForgotPassword = make("Forgot Password")
 export const ResetPassword = make("Reset Password")
 export const Onboarding = make("Onboarding")
@@ -230,7 +267,6 @@ export const WorkspaceSelector = make("Workspace Selector")
 export const Home = make("Home")
 export const DocumentEditor = make("Document Editor")
 export const Whiteboard = make("Whiteboard")
-export const Chat = make("Chat")
 export const Activity = make("Activity")
 export const WorkspaceSettings = make("Workspace Settings")
 export const ProfileSettings = make("Profile Settings")

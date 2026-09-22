@@ -1,12 +1,17 @@
-import { Outlet } from "react-router"
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { Outlet, useParams } from "react-router"
+import {
+  SidebarProvider, SidebarInset, SidebarTrigger,
+} from "@/components/ui/sidebar"
 import { WorkspaceSidebar } from "@/app/workspace-sidebar"
 import { CommandMenu } from "@/app/command-menu"
 import { useIsDesktop } from "@/hooks/use-is-desktop"
 import * as React from "react"
 import { ContextPanelProvider, ContextPanelDesktopSlot, ContextPanelOverlay } from "@/app/context-panel"
+import { useWorkspaceRoom } from "@/app/use-workspace-room"
 
 export function WorkspaceLayout() {
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  useWorkspaceRoom(workspaceId)
   const isDesktop = useIsDesktop()
   const [searchOpen, setSearchOpen] = React.useState(false)
 

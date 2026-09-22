@@ -8,6 +8,7 @@ import { AppRouter } from '@/app/router'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthBootstrap } from '@/app/auth-bootstrap'
 import { Toaster } from '@/components/ui/sonner'
+import { SocketProvider } from '@/app/socket-provider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')!).render(
       <TooltipProvider>
         <QueryClientProvider client={queryClient}>
           <AuthBootstrap>
-            <AppRouter />
+            <SocketProvider>
+              <AppRouter />
+            </SocketProvider>
           </AuthBootstrap>
         </QueryClientProvider>
       </TooltipProvider>
