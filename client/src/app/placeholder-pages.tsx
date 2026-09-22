@@ -13,6 +13,12 @@ import { Input } from "@/components/ui/input"
 import { useDocuments } from "@/features/documents/hooks/use-documents"
 import { DocumentList } from "@/features/documents/components/document-list"
 import { CreateDocumentDialog } from "@/features/documents/components/create-document-dialog"
+import { useMembers } from "@/features/members/hooks/use-members"
+import { MemberList } from "@/features/members/components/member-list"
+import { InviteMemberDialog } from "@/features/members/components/invite-member-dialog"
+import { useCurrentWorkspaceRole } from "@/features/workspaces/hooks/use-current-workspace-role"
+import { useAcceptInvitation } from "@/features/members/hooks/use-accept-invitation"
+import { useRejectInvitation } from "@/features/members/hooks/use-reject-invitation"
 
 const make = (name: string) => () => <div className="p-8">{name}</div>
 
@@ -79,7 +85,6 @@ export function Verify() {
       <P className="max-w-sm text-muted-foreground">
         We've sent a confirmation link to your email address. Click it to activate your account, then log in.
       </P>
-      {/* TODO: wire to a real resend endpoint once one exists (Supabase's own resend() method, or a backend relay matching the signup/login pattern) */}
       <Button variant="outline">Resend email</Button>
       <Muted>
         <a href="/login" className="underline underline-offset-4">Back to login</a>
@@ -112,6 +117,112 @@ export function Documents() {
   )
 }
 
+export function Members() {
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const { data: members, isLoading } = useMembers(workspaceId!)
+  const role = useCurrentWorkspaceRole()
+  const [inviteOpen, setInviteOpen] = React.useState(false)
+
+  return (
+    <div className="space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <Title className="text-2xl">Members</Title>
+        {role === "owner" && (
+          <Button onClick={() => setInviteOpen(true)}>
+            <PlusIcon />
+            Invite member
+          </Button>
+        )}
+      </div>
+      <MemberList members={members} isLoading={isLoading} />
+      <InviteMemberDialog
+        workspaceId={workspaceId!}
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+      />
+    </div>
+  )
+}
+
+export function InvitationAccept() {
+  const { invitationId } = useParams<{ invitationId: string }>()
+  const navigate = useNavigate()
+  const accept = useAcceptInvitation()
+  const reject = useRejectInvitation()
+  const [error, setError] = React.useState<string | null>(null)
+
+  // Terminal state once either mutation resolves — success or a handled
+  // failure both stop showing the action buttons. Only an unexpected error
+  // leaves the buttons available to retry.
+  const [resolved, setResolved] = React.useState<"declined" | null>(null)
+
+  function handleAccept() {
+    setError(null)
+    accept.mutate(invitationId!, {
+      onSuccess: (workspace) => navigate(`/w/${workspace.id}`, { replace: true }),
+      onError: (err) => {
+        const message = err instanceof ApiError ? err.message : "Something went wrong."
+        setError(message)
+      },
+    })
+  }
+
+  function handleDecline() {
+    setError(null)
+    reject.mutate(invitationId!, {
+      onSuccess: () => setResolved("declined"),
+      onError: (err) => {
+        const message = err instanceof ApiError ? err.message : "Something went wrong."
+        setError(message)
+      },
+    })
+  }
+
+  const isPending = accept.isPending || reject.isPending
+
+  if (resolved === "declined") {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center gap-4 p-4 text-center">
+        <Title className="text-2xl">Invitation declined</Title>
+        <Button variant="outline" onClick={() => navigate("/workspaces")}>
+          Go to your workspaces
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-svh flex-col items-center justify-center gap-4 p-4 text-center">
+      <Title className="text-2xl">Workspace invitation</Title>
+      <P className="max-w-sm text-muted-foreground">
+        You've been invited to join a workspace.
+      </P>
+
+      {error && (
+        <div className="max-w-sm space-y-2">
+          <p className="text-sm text-destructive">{error}</p>
+          <Muted>
+            <button onClick={() => navigate("/workspaces")} className="underline underline-offset-4">
+              Go to your workspaces instead
+            </button>
+          </Muted>
+        </div>
+      )}
+
+      {!error && (
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleDecline} disabled={isPending}>
+            {reject.isPending ? "Declining..." : "Decline"}
+          </Button>
+          <Button onClick={handleAccept} disabled={isPending}>
+            {accept.isPending ? "Accepting..." : "Accept"}
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export const ForgotPassword = make("Forgot Password")
 export const ResetPassword = make("Reset Password")
 export const Onboarding = make("Onboarding")
@@ -121,7 +232,6 @@ export const DocumentEditor = make("Document Editor")
 export const Whiteboard = make("Whiteboard")
 export const Chat = make("Chat")
 export const Activity = make("Activity")
-export const Members = make("Members")
 export const WorkspaceSettings = make("Workspace Settings")
 export const ProfileSettings = make("Profile Settings")
 export const NotFound = make("404 — Not Found")

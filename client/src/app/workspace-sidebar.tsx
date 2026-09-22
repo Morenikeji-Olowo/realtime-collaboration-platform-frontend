@@ -12,6 +12,10 @@ import { WorkspaceSwitcher } from "@/features/workspaces/components/workspace-sw
 import { useWorkspaces } from "@/features/workspaces/hooks/use-workspaces"
 import { useCurrentUser } from "@/features/users/hooks/use-current-user"
 import { getInitials } from "@/features/users/lib/get-initials"
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { signOut } from "@/features/auth/api/auth-api"
 
 export function WorkspaceSidebar({ onOpenSearch }: { onOpenSearch: () => void }) {
   const { pathname } = useLocation()
@@ -91,17 +95,29 @@ export function WorkspaceSidebar({ onOpenSearch }: { onOpenSearch: () => void })
               <span>Keyboard shortcuts</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={currentUser?.name ?? ""} size="lg">
-              <Link to="/settings/profile">
-                <Avatar className="size-6">
-                  <AvatarFallback>
-                    {currentUser ? getInitials(currentUser.name) : ""}
-                  </AvatarFallback>
-                </Avatar>
-                <span>{currentUser?.name ?? "Loading..."}</span>
-              </Link>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton tooltip={currentUser?.name ?? ""} size="lg">
+                  <Avatar className="size-6">
+                    <AvatarFallback>
+                      {currentUser ? getInitials(currentUser.name) : ""}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>{currentUser?.name ?? "Loading..."}</span>
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" side="top" className="w-(--radix-dropdown-menu-trigger-width)">
+                <DropdownMenuItem asChild>
+                  <Link to="/settings/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onSelect={() => signOut()}>
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

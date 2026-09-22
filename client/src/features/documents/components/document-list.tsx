@@ -17,6 +17,7 @@ import { useRenameDocument } from "@/features/documents/hooks/use-rename-documen
 import { useDeleteDocument } from "@/features/documents/hooks/use-delete-document"
 import { ApiError } from "@/lib/api/client"
 import type { Document } from "@/features/documents/types/document"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 
 export function DocumentList({
   documents,
@@ -103,7 +104,7 @@ export function DocumentList({
 
           return (
             <Card key={doc.id} className="transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-center gap-3">
+                            <CardContent className="flex-row items-center justify-between gap-3">
                 {isEditing ? (
                   <>
                     <FileTextIcon className="size-5 shrink-0 text-muted-foreground" />
@@ -111,23 +112,36 @@ export function DocumentList({
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       autoFocus
-                      className="h-8"
+                      className="h-8 flex-1"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") saveEditing(doc.id)
                         if (e.key === "Escape") cancelEditing()
                       }}
                     />
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      disabled={renameDoc.isPending}
-                      onClick={() => saveEditing(doc.id)}
-                    >
-                      <CheckIcon />
-                    </Button>
-                    <Button size="icon-sm" variant="ghost" onClick={cancelEditing}>
-                      <XIcon />
-                    </Button>
+                    <div className="flex shrink-0 gap-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            disabled={renameDoc.isPending}
+                            onClick={() => saveEditing(doc.id)}
+                            aria-label="Save"
+                          >
+                            <CheckIcon />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Save</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon-sm" variant="ghost" onClick={cancelEditing} aria-label="Cancel">
+                            <XIcon />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Cancel</TooltipContent>
+                      </Tooltip>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -145,7 +159,7 @@ export function DocumentList({
                     </Link>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon-sm">
+                        <Button variant="ghost" size="icon-sm" className="shrink-0">
                           <MoreVerticalIcon />
                         </Button>
                       </DropdownMenuTrigger>

@@ -1,6 +1,8 @@
 import { apiFetch } from "@/lib/api/client"
 import { supabase } from "@/lib/supabase/client"
 import type { SignupResponse, LoginResponse } from "@/features/auth/types/auth-response"
+import { queryClient } from "@/lib/api/query-client"
+
 
 export async function signup(input: { email: string; password: string; name: string }) {
   return apiFetch<SignupResponse>("/api/auth/signup", {
@@ -24,4 +26,9 @@ export async function login(input: { email: string; password: string }) {
   })
 
   return result
+}
+
+export async function signOut() {
+  await supabase.auth.signOut()
+  queryClient.clear()
 }

@@ -16,14 +16,14 @@ export function AppRouter() {
         <Route element={<RequireUnverified />}>
           <Route path="/verify" element={<Pages.Verify />} />
         </Route>
+          <Route element={<RequireAuth />}>
+            <Route path="/onboarding" element={<Pages.Onboarding />} />
+            <Route path="/workspaces" element={<Pages.WorkspaceSelector />} />
+            <Route path="/settings/profile" element={<Pages.ProfileSettings />} />
+            <Route path="/invitations/:invitationId" element={<Pages.InvitationAccept />} />
+            <Route path="/" element={<WorkspaceEntryRedirect />} />
 
-        <Route element={<RequireAuth />}>
-          <Route path="/onboarding" element={<Pages.Onboarding />} />
-          <Route path="/workspaces" element={<Pages.WorkspaceSelector />} />
-          <Route path="/settings/profile" element={<Pages.ProfileSettings />} />
-          <Route path="/" element={<WorkspaceEntryRedirect />} />
-
-          <Route path="/w/:workspaceId" element={<RequireWorkspaceMembership />}>
+            <Route path="/w/:workspaceId" element={<RequireWorkspaceMembership />}>
             <Route element={<WorkspaceLayout />}>
               <Route index element={<Pages.Home />} />
               <Route path="documents" element={<Pages.Documents />} />

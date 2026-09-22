@@ -1,0 +1,12 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { acceptInvitation } from "@/features/members/api/invitations-api"
+
+export function useAcceptInvitation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (invitationId: string) => acceptInvitation(invitationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] })
+    },
+  })
+}
