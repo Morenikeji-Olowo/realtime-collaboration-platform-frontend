@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/app/theme-provider'
 import { AppRouter } from '@/app/router'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthBootstrap } from '@/app/auth-bootstrap'
+import { Toaster } from '@/components/ui/sonner'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -19,5 +20,6 @@ createRoot(document.getElementById('root')!).render(
         </QueryClientProvider>
       </TooltipProvider>
     </ThemeProvider>
+    <Toaster />
   </StrictMode>,
 )
