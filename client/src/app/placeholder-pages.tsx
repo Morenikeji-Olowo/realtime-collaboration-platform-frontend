@@ -27,6 +27,8 @@ import { MessageList } from "@/features/chat/components/message-list"
 import { MessageComposer } from "@/features/chat/components/message-composer"
 import { usePresenceStore } from "@/stores/presence-store"
 
+import { WhiteboardCanvas } from "@/features/whiteboard/components/whiteboard-canvas"
+
 const make = (name: string) => () => <div className="p-8">{name}</div>
 
 export function Login() {
@@ -260,13 +262,17 @@ export function Chat() {
   )
 }
 
+export function Whiteboard() {
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  return <WhiteboardCanvas workspaceId={workspaceId!} />
+}
+
 export const ForgotPassword = make("Forgot Password")
 export const ResetPassword = make("Reset Password")
 export const Onboarding = make("Onboarding")
 export const WorkspaceSelector = make("Workspace Selector")
-export const Home = make("Home")
+export { HomeView as Home } from "@/features/workspaces/components/home-view"
 export const DocumentEditor = make("Document Editor")
-export const Whiteboard = make("Whiteboard")
 export const Activity = make("Activity")
 export const WorkspaceSettings = make("Workspace Settings")
 export const ProfileSettings = make("Profile Settings")
