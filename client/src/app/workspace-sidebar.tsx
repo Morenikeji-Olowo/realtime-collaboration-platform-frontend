@@ -15,7 +15,10 @@ import { getInitials } from "@/features/users/lib/get-initials"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+
 import { signOut } from "@/features/auth/api/auth-api"
+import * as React from "react"
+import { CreateWorkspaceDialog } from "@/features/workspaces/components/create-workspace-dialog"
 
 export function WorkspaceSidebar({ onOpenSearch }: { onOpenSearch: () => void }) {
   const { pathname } = useLocation()
@@ -24,6 +27,7 @@ export function WorkspaceSidebar({ onOpenSearch }: { onOpenSearch: () => void })
   const { data: workspaces = [] } = useWorkspaces()
   const { data: currentUser } = useCurrentUser()
   const base = `/w/${workspaceId}`
+  const [createWorkspaceOpen, setCreateWorkspaceOpen] = React.useState(false)
 
 
   const navItems = [
@@ -45,7 +49,7 @@ export function WorkspaceSidebar({ onOpenSearch }: { onOpenSearch: () => void })
           workspaces={workspaces}
           activeWorkspaceId={workspaceId ?? ""}
           onSelect={(id) => navigate(`/w/${id}`)}
-          onCreateWorkspace={() => {}}
+          onCreateWorkspace={() => setCreateWorkspaceOpen(true)}
         />
         <SidebarMenu>
           <SidebarMenuItem>
@@ -56,6 +60,7 @@ export function WorkspaceSidebar({ onOpenSearch }: { onOpenSearch: () => void })
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+      <CreateWorkspaceDialog open={createWorkspaceOpen} onOpenChange={setCreateWorkspaceOpen} />
 
       <SidebarContent>
         <SidebarGroup>

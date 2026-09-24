@@ -41,7 +41,7 @@ export function WorkspaceEntryRedirect() {
     return <div className="p-8 text-sm text-destructive">Couldn't load your workspaces. Try refreshing.</div>
   }
 
-  if (!workspaces || workspaces.length === 0) return <Navigate to="/onboarding" replace />
+  if (!workspaces || workspaces.length === 0) return <Navigate to="/workspaces" replace />
   if (workspaces.length === 1) return <Navigate to={`/w/${workspaces[0].id}`} replace />
   return <Navigate to="/workspaces" replace />
 }

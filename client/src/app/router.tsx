@@ -17,7 +17,6 @@ export function AppRouter() {
           <Route path="/verify" element={<Pages.Verify />} />
         </Route>
           <Route element={<RequireAuth />}>
-            <Route path="/onboarding" element={<Pages.Onboarding />} />
             <Route path="/workspaces" element={<Pages.WorkspaceSelector />} />
             <Route path="/settings/profile" element={<Pages.ProfileSettings />} />
             <Route path="/invitations/:invitationId" element={<Pages.InvitationAccept />} />

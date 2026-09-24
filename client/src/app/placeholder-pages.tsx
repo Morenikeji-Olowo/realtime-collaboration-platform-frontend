@@ -28,6 +28,11 @@ import { MessageComposer } from "@/features/chat/components/message-composer"
 import { usePresenceStore } from "@/stores/presence-store"
 
 import { WhiteboardCanvas } from "@/features/whiteboard/components/whiteboard-canvas"
+import { useWorkspaces } from "@/features/workspaces/hooks/use-workspaces"
+import { CreateWorkspaceDialog } from "@/features/workspaces/components/create-workspace-dialog"
+
+import { useActivity } from "@/features/activity/hooks/use-activity"
+import { ActivityList } from "@/features/activity/components/activity-list"
 
 const make = (name: string) => () => <div className="p-8">{name}</div>
 
@@ -267,13 +272,78 @@ export function Whiteboard() {
   return <WhiteboardCanvas workspaceId={workspaceId!} />
 }
 
+
+export function WorkspaceSelector() {
+  const { data: workspaces, isLoading } = useWorkspaces()
+  const [createOpen, setCreateOpen] = React.useState(false)
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-svh items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    )
+  }
+
+  if (!workspaces || workspaces.length === 0) {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center gap-3 p-4 text-center">
+        <Title className="text-2xl">You don't have a workspace yet</Title>
+        <P className="max-w-sm text-muted-foreground">
+          Create a workspace to start collaborating with your team, classmates, or organization.
+        </P>
+        <Button onClick={() => setCreateOpen(true)}>Create workspace</Button>
+        <CreateWorkspaceDialog open={createOpen} onOpenChange={setCreateOpen} />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-svh flex-col items-center justify-center gap-4 p-4">
+      <Title className="text-2xl">Your workspaces</Title>
+      <div className="w-full max-w-sm space-y-2">
+        {workspaces.map((w) => (
+          <Link key={w.id} to={`/w/${w.id}`}>
+            <div className="rounded-lg border p-3 transition-colors hover:bg-muted/50">
+              <p className="font-medium">{w.name}</p>
+              <p className="text-xs capitalize text-muted-foreground">{w.role}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+      <Button variant="outline" onClick={() => setCreateOpen(true)}>
+        Create another workspace
+      </Button>
+      <CreateWorkspaceDialog open={createOpen} onOpenChange={setCreateOpen} />
+    </div>
+  )
+}
+
+
+export function Activity() {
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useActivity(workspaceId!)
+
+  return (
+    <div className="space-y-6 p-6">
+      <Title className="text-2xl">Activity</Title>
+      <ActivityList
+        workspaceId={workspaceId!}
+        pages={data?.pages}
+        isLoading={isLoading}
+        isError={isError}
+        hasNextPage={!!hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={() => fetchNextPage()}
+      />
+    </div>
+  )
+}
 export const ForgotPassword = make("Forgot Password")
 export const ResetPassword = make("Reset Password")
-export const Onboarding = make("Onboarding")
-export const WorkspaceSelector = make("Workspace Selector")
 export { HomeView as Home } from "@/features/workspaces/components/home-view"
 export const DocumentEditor = make("Document Editor")
-export const Activity = make("Activity")
 export const WorkspaceSettings = make("Workspace Settings")
 export const ProfileSettings = make("Profile Settings")
 export const NotFound = make("404 — Not Found")
