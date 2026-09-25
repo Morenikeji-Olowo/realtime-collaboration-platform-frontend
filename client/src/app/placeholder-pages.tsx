@@ -34,6 +34,13 @@ import { CreateWorkspaceDialog } from "@/features/workspaces/components/create-w
 import { useActivity } from "@/features/activity/hooks/use-activity"
 import { ActivityList } from "@/features/activity/components/activity-list"
 
+import { useRenameWorkspace } from "@/features/workspaces/hooks/use-rename-workspace"
+import { useDeleteWorkspace } from "@/features/workspaces/hooks/use-delete-workspace"
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
+
 const make = (name: string) => () => <div className="p-8">{name}</div>
 
 export function Login() {
@@ -340,10 +347,134 @@ export function Activity() {
     </div>
   )
 }
+
+
+export function WorkspaceSettings() {
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const navigate = useNavigate()
+  const { data: workspaces } = useWorkspaces()
+  const role = useCurrentWorkspaceRole()
+  const isOwner = role === "owner"
+  const workspace = workspaces?.find((w) => w.id === workspaceId)
+
+  const [name, setName] = React.useState(workspace?.name ?? "")
+  const [nameError, setNameError] = React.useState<string | null>(null)
+  const [renameError, setRenameError] = React.useState<string | null>(null)
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
+  const [deleteError, setDeleteError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (workspace) setName(workspace.name)
+  }, [workspace?.name])
+
+  const renameWorkspace = useRenameWorkspace(workspaceId!)
+  const deleteWorkspace = useDeleteWorkspace(workspaceId!)
+
+  function handleRename() {
+    setNameError(null)
+    setRenameError(null)
+    const trimmed = name.trim()
+    if (!trimmed) {
+      setNameError("Workspace name is required")
+      return
+    }
+    if (trimmed.length > 200) {
+      setNameError("Workspace name must be 200 characters or fewer")
+      return
+    }
+    renameWorkspace.mutate(trimmed, {
+      onError: (err) => {
+        setRenameError(err instanceof ApiError ? err.message : "Something went wrong.")
+      },
+    })
+  }
+
+  function handleDelete() {
+    setDeleteError(null)
+    deleteWorkspace.mutate(undefined, {
+      onSuccess: () => navigate("/workspaces"),
+      onError: (err) => {
+        setDeleteError(err instanceof ApiError ? err.message : "Something went wrong.")
+        // AlertDialog stays open on failure, same pattern as every other
+        // destructive-action failure in this app.
+      },
+    })
+  }
+
+  return (
+    <div className="max-w-lg space-y-8 p-6">
+      <Title className="text-2xl">Workspace Settings</Title>
+
+      <div className="space-y-2">
+        <h2 className="text-sm font-medium">Workspace</h2>
+        <div className="flex gap-2">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={!isOwner}
+          />
+          {isOwner && (
+            <Button onClick={handleRename} disabled={renameWorkspace.isPending}>
+              {renameWorkspace.isPending ? "Saving..." : "Save"}
+            </Button>
+          )}
+        </div>
+        {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+        {renameError && <p className="text-sm text-destructive">{renameError}</p>}
+        {!isOwner && (
+          <Muted>Only the workspace owner can rename this workspace.</Muted>
+        )}
+      </div>
+
+      {isOwner && (
+        <div className="space-y-3 rounded-lg border border-destructive/30 p-4">
+          <h2 className="text-sm font-medium text-destructive">Danger Zone</h2>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">Delete workspace</p>
+              <p className="text-xs text-muted-foreground">
+                Permanently delete this workspace and its documents, messages, members,
+                invitations, and whiteboard.
+              </p>
+            </div>
+            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+              Delete workspace
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{workspace?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all documents, messages, invitations, memberships,
+              and the whiteboard in this workspace. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={deleteWorkspace.isPending}
+              onClick={(e) => {
+                e.preventDefault()
+                handleDelete()
+              }}
+            >
+              {deleteWorkspace.isPending ? "Deleting..." : "Delete workspace"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
+}
 export const ForgotPassword = make("Forgot Password")
 export const ResetPassword = make("Reset Password")
 export { HomeView as Home } from "@/features/workspaces/components/home-view"
 export const DocumentEditor = make("Document Editor")
-export const WorkspaceSettings = make("Workspace Settings")
 export const ProfileSettings = make("Profile Settings")
 export const NotFound = make("404 — Not Found")

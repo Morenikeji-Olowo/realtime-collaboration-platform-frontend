@@ -11,3 +11,15 @@ export function createWorkspace(name: string) {
     body: JSON.stringify({ name }),
   })
 }
+export function renameWorkspace(workspaceId: string, name: string) {
+  return apiFetch<Workspace>(`/api/workspaces/${workspaceId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name }),
+  })
+}
+
+export function deleteWorkspace(workspaceId: string) {
+  return apiFetch<null>(`/api/workspaces/${workspaceId}`, {
+    method: "DELETE",
+  })
+}
