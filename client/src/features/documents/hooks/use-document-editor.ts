@@ -11,15 +11,15 @@ export function useDocumentEditor(documentId: string) {
   const session = useAuthStore((s) => s.session)
   const [status, setStatus] = React.useState<"connecting" | "synced" | "error">("connecting")
   const [error, setError] = React.useState<string | null>(null)
-  const ydocRef = React.useRef<Y.Doc>()
-  const providerRef = React.useRef<SocketYjsProvider>()
+  const ydocRef = React.useRef<Y.Doc | undefined>(undefined)
+  const providerRef = React.useRef<SocketYjsProvider | undefined>(undefined)
 
   if (!ydocRef.current) ydocRef.current = new Y.Doc()
 
   const editor = useEditor(
     {
       extensions: [
-        StarterKit.configure({ history: false }), // Yjs owns undo/redo history in collaborative mode
+        StarterKit.configure({ undoRedo: false }), // Yjs owns undo/redo history in collaborative mode
         Collaboration.configure({ document: ydocRef.current }),
       ],
       editable: status === "synced",
