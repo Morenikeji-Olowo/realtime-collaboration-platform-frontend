@@ -28,6 +28,7 @@ export function AppRouter() {
               <Route path="documents" element={<Pages.Documents />} />
               <Route path="documents/:documentId" element={<Pages.DocumentEditor />} />
               <Route path="whiteboard" element={<Pages.Whiteboard />} />
+              <Route path="files" element={<Pages.Files />} />
               <Route path="chat" element={<Pages.Chat />} />
               <Route path="activity" element={<Pages.Activity />} />
               <Route path="members" element={<Pages.Members />} />

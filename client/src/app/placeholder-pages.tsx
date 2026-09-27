@@ -41,6 +41,18 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel,
 } from "@/components/ui/alert-dialog"
 
+import { useCurrentUser } from "@/features/users/hooks/use-current-user"
+import { useFiles } from "@/features/files/hooks/use-files"
+import { useFileUploads } from "@/features/files/hooks/use-file-uploads"
+import { useDeleteFile } from "@/features/files/hooks/use-delete-file"
+import { useDownloadFile } from "@/features/files/hooks/use-download-file"
+import type { WorkspaceFile } from "@/features/files/types/workspace-file"
+import { UploadProgressList } from "@/features/files/components/upload-progress-list"
+import { FileList } from "@/features/files/components/file-list"
+import { supabase } from "@/lib/supabase/client"
+import { forgotPasswordSchema, type ForgotPasswordInput } from "@/features/auth/schemas/forgot-password-schema"
+import { resetPasswordSchema, type ResetPasswordInput } from "@/features/auth/schemas/reset-password-schema"
+
 const make = (name: string) => () => <div className="p-8">{name}</div>
 
 export function Login() {
@@ -472,9 +484,186 @@ export function WorkspaceSettings() {
     </div>
   )
 }
-export const ForgotPassword = make("Forgot Password")
-export const ResetPassword = make("Reset Password")
+
+export function Files() {
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const { data: currentUser } = useCurrentUser()
+  const { data: workspaces } = useWorkspaces()
+  const workspace = workspaces?.find((w) => w.id === workspaceId)
+
+  const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useFiles(workspaceId!)
+  const { uploads, upload, dismiss } = useFileUploads(workspaceId!)
+  const deleteFile = useDeleteFile(workspaceId!)
+  const downloadFile = useDownloadFile()
+
+  const [deleteTarget, setDeleteTarget] = React.useState<WorkspaceFile | null>(null)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  function canDelete(file: WorkspaceFile) {
+    return file.uploaded_by.id === currentUser?.id || workspace?.owner_id === currentUser?.id
+  }
+
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files
+    if (files) Array.from(files).forEach(upload)
+    e.target.value = "" // allow re-selecting the same file
+  }
+
+  return (
+    <div className="space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <Title className="text-2xl">Files</Title>
+          <P className="text-muted-foreground">Shared files for this workspace</P>
+        </div>
+        <Button onClick={() => fileInputRef.current?.click()}>
+          <PlusIcon /> Upload files
+        </Button>
+        <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} />
+      </div>
+
+      <UploadProgressList uploads={uploads} onDismiss={dismiss} />
+
+      <FileList
+        files={data?.pages.flatMap((p) => p.files)}
+        isLoading={isLoading}
+        isError={isError}
+        hasNextPage={!!hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={() => fetchNextPage()}
+        onDownload={(fileId) => downloadFile.mutate(fileId)}
+        onDeleteRequest={setDeleteTarget}
+        canDelete={canDelete}
+      />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{deleteTarget?.original_name}"?</AlertDialogTitle>
+            <AlertDialogDescription>This can't be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={deleteFile.isPending}
+              onClick={(e) => {
+                e.preventDefault()
+                if (!deleteTarget) return
+                deleteFile.mutate(deleteTarget.id, { onSuccess: () => setDeleteTarget(null) })
+              }}
+            >
+              {deleteFile.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
+}
+export function ForgotPassword() {
+  const [sent, setSent] = React.useState(false)
+  const { register, handleSubmit, formState: { errors }, setError } =
+    useForm<ForgotPasswordInput>({ resolver: zodResolver(forgotPasswordSchema) })
+
+  async function onSubmit(data: ForgotPasswordInput) {
+    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (error) {
+      setError("root", { message: error.message })
+      return
+    }
+    setSent(true)
+  }
+
+  if (sent) {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center gap-3 p-4 text-center">
+        <Title className="text-2xl">Check your email</Title>
+        <P className="max-w-sm text-muted-foreground">
+          If an account exists for that email, we've sent a link to reset your password.
+        </P>
+        <Link to="/login" className="text-sm underline underline-offset-4">Back to login</Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-svh items-center justify-center p-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm space-y-4">
+        <Title className="text-2xl">Reset your password</Title>
+        <div className="space-y-1">
+          <Input placeholder="Email" type="email" {...register("email")} autoFocus />
+          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+        </div>
+        {errors.root && <p className="text-sm text-destructive">{errors.root.message}</p>}
+        <Button type="submit" className="w-full">Send reset link</Button>
+        <p className="text-center text-sm text-muted-foreground">
+          <Link to="/login" className="underline underline-offset-4">Back to login</Link>
+        </p>
+      </form>
+    </div>
+  )
+}
+
+export function ResetPassword() {
+  const navigate = useNavigate()
+  const [hasSession, setHasSession] = React.useState<boolean | null>(null)
+  const { register, handleSubmit, formState: { errors }, setError } =
+    useForm<ResetPasswordInput>({ resolver: zodResolver(resetPasswordSchema) })
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setHasSession(!!data.session)
+    })
+  }, [])
+
+  async function onSubmit(data: ResetPasswordInput) {
+    const { error } = await supabase.auth.updateUser({ password: data.password })
+    if (error) {
+      setError("root", { message: error.message })
+      return
+    }
+    navigate("/", { replace: true })
+  }
+
+  if (hasSession === null) return null // brief check, no flash of wrong state
+
+  if (!hasSession) {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center gap-3 p-4 text-center">
+        <Title className="text-2xl">This link isn't valid</Title>
+        <P className="max-w-sm text-muted-foreground">
+          It may have expired or already been used. Request a new one.
+        </P>
+        <Link to="/forgot-password" className="text-sm underline underline-offset-4">
+          Request a new link
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-svh items-center justify-center p-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm space-y-4">
+        <Title className="text-2xl">Set a new password</Title>
+        <div className="space-y-1">
+          <Input placeholder="New password" type="password" {...register("password")} autoFocus />
+          {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+        </div>
+        <div className="space-y-1">
+          <Input placeholder="Confirm password" type="password" {...register("confirmPassword")} />
+          {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
+        </div>
+        {errors.root && <p className="text-sm text-destructive">{errors.root.message}</p>}
+        <Button type="submit" className="w-full">Reset password</Button>
+      </form>
+    </div>
+  )
+}
+
 export { HomeView as Home } from "@/features/workspaces/components/home-view"
-export const DocumentEditor = make("Document Editor")
+export { DocumentEditorView as DocumentEditor } from "@/features/documents/components/document-editor-view"
 export const ProfileSettings = make("Profile Settings")
 export const NotFound = make("404 — Not Found")

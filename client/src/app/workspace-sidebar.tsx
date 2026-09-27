@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate, useParams } from "react-router"
 import {
   HomeIcon, FileTextIcon, PenToolIcon, MessageSquareIcon,
-  BellIcon, UsersIcon, SettingsIcon, KeyboardIcon, SearchIcon,
+  BellIcon, UsersIcon, SettingsIcon, KeyboardIcon, SearchIcon, FolderIcon,
 } from "lucide-react"
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup,
@@ -37,6 +37,7 @@ export function WorkspaceSidebar({ onOpenSearch }: { onOpenSearch: () => void })
     { label: "Chat", to: `${base}/chat`, icon: MessageSquareIcon },
     { label: "Activity", to: `${base}/activity`, icon: BellIcon },
     { label: "Members", to: `${base}/members`, icon: UsersIcon },
+    { label: "Files", to: `${base}/files`, icon: FolderIcon },
   ]
 
   const isActive = (to: string, end?: boolean) =>

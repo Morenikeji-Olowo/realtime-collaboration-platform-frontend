@@ -1,19 +1,26 @@
-import { Outlet, useParams } from "react-router"
+import { Outlet, useParams } from "react-router";
 import {
-  SidebarProvider, SidebarInset, SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { WorkspaceSidebar } from "@/app/workspace-sidebar"
-import { CommandMenu } from "@/app/command-menu"
-import { useIsDesktop } from "@/hooks/use-is-desktop"
-import * as React from "react"
-import { ContextPanelProvider, ContextPanelDesktopSlot, ContextPanelOverlay } from "@/app/context-panel"
-import { useWorkspaceRoom } from "@/app/use-workspace-room"
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { WorkspaceSidebar } from "@/app/workspace-sidebar";
+import { CommandMenu } from "@/app/command-menu";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
+import * as React from "react";
+import {
+  ContextPanelProvider,
+  ContextPanelDesktopSlot,
+  ContextPanelOverlay,
+} from "@/app/context-panel";
+import { useWorkspaceRoom } from "@/app/use-workspace-room";
+import { ConnectionStatus } from "@/app/connection-status";
 
 export function WorkspaceLayout() {
-  const { workspaceId } = useParams<{ workspaceId: string }>()
-  useWorkspaceRoom(workspaceId)
-  const isDesktop = useIsDesktop()
-  const [searchOpen, setSearchOpen] = React.useState(false)
+  const { workspaceId } = useParams<{ workspaceId: string }>();
+  useWorkspaceRoom(workspaceId);
+  const isDesktop = useIsDesktop();
+  const [searchOpen, setSearchOpen] = React.useState(false);
 
   return (
     <ContextPanelProvider>
@@ -24,6 +31,9 @@ export function WorkspaceLayout() {
             <div className="flex flex-1 flex-col">
               <header className="flex h-12 items-center gap-2 border-b px-3">
                 <SidebarTrigger />
+                <div className="ml-auto">
+                  <ConnectionStatus />
+                </div>
               </header>
               <div className="flex-1 overflow-auto">
                 <Outlet />
@@ -36,5 +46,5 @@ export function WorkspaceLayout() {
         <ContextPanelOverlay />
       </SidebarProvider>
     </ContextPanelProvider>
-  )
+  );
 }
