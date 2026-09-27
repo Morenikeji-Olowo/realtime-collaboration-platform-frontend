@@ -25,19 +25,19 @@ export class SocketYjsProvider {
     // that means it came FROM the network already, and re-sending it would
     // create the exact echo loop this pattern exists to prevent.
     this.updateHandler = (update, origin) => {
-  console.log("[yjs] local update fired, origin match?", origin === this, "joined?", this.joined)
-  if (origin === this) return
-  if (!this.joined) return
-  this.socket.emit("document:update", this.documentId, update)
-}
+      console.log("[yjs] local update fired, origin match?", origin === this, "joined?", this.joined)
+      if (origin === this) return
+      if (!this.joined) return
+      this.socket.emit("document:update", this.documentId, update)
+    }
     this.ydoc.on("update", this.updateHandler)
 
     // Network -> local doc, explicitly tagged with this provider as origin
     // so the handler above correctly ignores rebroadcasting it.
-    this.remoteHandler = (update: ArrayBuffer) => {
-  console.log("[yjs] remote update received, byte length:", update.byteLength)
-  Y.applyUpdate(this.ydoc, new Uint8Array(update), this)
-}
+    this.remoteHandler = (update: Uint8Array) => {
+      console.log("[yjs] remote update received, byte length:", update.byteLength)
+      Y.applyUpdate(this.ydoc, update, this)
+    }
     this.socket.on("document:update", this.remoteHandler)
 
     this.socket.on("connect", this.rejoin)
@@ -50,26 +50,26 @@ export class SocketYjsProvider {
   }
 
   join() {
-  this.onStatusChange("connecting")
-  this.socket.emit(
-    "document:join",
-    this.documentId,
-    (res: { success: true; state: ArrayBuffer } | { success: false; error: string }) => {
-      if (!res.success) {
-        this.joined = false
-        this.onStatusChange("error", res.error)
-        return
-      }
-      Y.applyUpdate(this.ydoc, new Uint8Array(res.state), this)
-      this.joined = true
-      this.onStatusChange("synced")
-      console.log("[yjs] joined successfully, documentId:", this.documentId)
+    this.onStatusChange("connecting")
+    this.socket.emit(
+      "document:join",
+      this.documentId,
+      (res: { success: true; state: Uint8Array } | { success: false; error: string }) => {
+        if (!res.success) {
+          this.joined = false
+          this.onStatusChange("error", res.error)
+          return
+        }
+        Y.applyUpdate(this.ydoc, res.state, this)
+        this.joined = true
+        this.onStatusChange("synced")
+        console.log("[yjs] joined successfully, documentId:", this.documentId)
 
-      const localState = Y.encodeStateAsUpdate(this.ydoc)
-      this.socket.emit("document:update", this.documentId, localState)
-    }
-  )
-}
+        const localState = Y.encodeStateAsUpdate(this.ydoc)
+        this.socket.emit("document:update", this.documentId, localState)
+      }
+    )
+  }
 
   destroy() {
     this.socket.emit("document:leave", this.documentId)

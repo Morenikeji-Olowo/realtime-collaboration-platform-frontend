@@ -1,6 +1,5 @@
 import { CheckIcon, XIcon, Loader2Icon } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
-import { Button } from "@/components/ui/button"
 
 type UploadItem = {
   id: string
