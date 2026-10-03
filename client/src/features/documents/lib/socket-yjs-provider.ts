@@ -1,13 +1,21 @@
 import * as Y from "yjs"
 import type { Socket } from "socket.io-client"
 
+type BinaryPayload = ArrayBuffer | Uint8Array
+
+// Browsers receive Socket.IO binary as ArrayBuffer; Node receives Buffer (a Uint8Array).
+// Yjs needs a Uint8Array, so normalize before any Y.applyUpdate call.
+function toUint8Array(data: BinaryPayload): Uint8Array {
+  return data instanceof Uint8Array ? data : new Uint8Array(data)
+}
+
 export class SocketYjsProvider {
   public ydoc: Y.Doc
   private socket: Socket
   private documentId: string
   private joined = false
   private updateHandler: (update: Uint8Array, origin: unknown) => void
-  private remoteHandler: (update: Uint8Array) => void
+  private remoteHandler: (update: BinaryPayload) => void
   private onStatusChange: (status: "connecting" | "synced" | "error", error?: string) => void
 
   constructor(
@@ -34,9 +42,10 @@ export class SocketYjsProvider {
 
     // Network -> local doc, explicitly tagged with this provider as origin
     // so the handler above correctly ignores rebroadcasting it.
-    this.remoteHandler = (update: Uint8Array) => {
-      console.log("[yjs] remote update received, byte length:", update.byteLength)
-      Y.applyUpdate(this.ydoc, update, this)
+    this.remoteHandler = (update: BinaryPayload) => {
+      const bytes = toUint8Array(update)
+      console.log("[yjs] remote update received, byte length:", bytes.byteLength)
+      Y.applyUpdate(this.ydoc, bytes, this)
     }
     this.socket.on("document:update", this.remoteHandler)
 
@@ -54,13 +63,13 @@ export class SocketYjsProvider {
     this.socket.emit(
       "document:join",
       this.documentId,
-      (res: { success: true; state: Uint8Array } | { success: false; error: string }) => {
+      (res: { success: true; state: BinaryPayload } | { success: false; error: string }) => {
         if (!res.success) {
           this.joined = false
           this.onStatusChange("error", res.error)
           return
         }
-        Y.applyUpdate(this.ydoc, res.state, this)
+        Y.applyUpdate(this.ydoc, toUint8Array(res.state), this)
         this.joined = true
         this.onStatusChange("synced")
         console.log("[yjs] joined successfully, documentId:", this.documentId)
