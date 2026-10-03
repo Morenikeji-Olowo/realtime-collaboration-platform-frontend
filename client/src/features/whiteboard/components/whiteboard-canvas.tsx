@@ -98,7 +98,7 @@ export function WhiteboardCanvas({ workspaceId }: { workspaceId: string }) {
 
   return (
     <div className="relative h-full">
-      <Tldraw store={store}>
+      <Tldraw store={store} licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}>
         <SyncBridge workspaceId={workspaceId} />
         <CursorSync workspaceId={workspaceId} />
       </Tldraw>
