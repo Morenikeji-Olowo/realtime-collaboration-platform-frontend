@@ -68,13 +68,15 @@ export function Login() {
   } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) })
 
   const mutation = useMutation({
-    mutationFn: login,
-    onSuccess: () => navigate(from, { replace: true }),
-    onError: (err) => {
-      const message = err instanceof ApiError ? err.message : "Something went wrong. Try again."
-      setError("root", { message })
-    },
-  })
+  mutationFn: login,
+  onSuccess: () => {
+    navigate(consumePostLoginRedirect() ?? from, { replace: true })
+  },
+  onError: (err) => {
+    const message = err instanceof ApiError ? err.message : "Something went wrong. Try again."
+    setError("root", { message })
+  },
+})
 
   return (
     <div className="flex min-h-svh items-center justify-center p-4">
@@ -105,6 +107,9 @@ export function Login() {
             Forgot password?
           </Link>
         </p>
+        <p className="text-center text-sm text-muted-foreground">
+  Don't have an account? <Link to="/signup" className="underline underline-offset-4">Sign up</Link>
+</p>
       </form>
     </div>
   )
@@ -658,6 +663,61 @@ export function ResetPassword() {
         </div>
         {errors.root && <p className="text-sm text-destructive">{errors.root.message}</p>}
         <Button type="submit" className="w-full">Reset password</Button>
+      </form>
+    </div>
+  )
+}
+
+export function Signup() {
+  const [sent, setSent] = React.useState(false)
+  const { register, handleSubmit, formState: { errors }, setError } =
+    useForm<SignupInput>({ resolver: zodResolver(signupSchema) })
+
+  const mutation = useMutation({
+    mutationFn: signup,
+    onSuccess: () => setSent(true),
+    onError: (err) => {
+      const message = err instanceof ApiError ? err.message : "Something went wrong."
+      setError("root", { message })
+    },
+  })
+
+  if (sent) {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center gap-3 p-4 text-center">
+        <MailIcon className="size-10 text-muted-foreground" />
+        <Title className="text-2xl">Check your email</Title>
+        <P className="max-w-sm text-muted-foreground">
+          We've sent a confirmation link to your email address. Click it, then log in.
+        </P>
+        <Link to="/login" className="text-sm underline underline-offset-4">Back to login</Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-svh items-center justify-center p-4">
+      <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="w-full max-w-sm space-y-4">
+        <Title className="text-2xl">Create an account</Title>
+        <div className="space-y-1">
+          <Input placeholder="Full name" {...register("name")} autoFocus />
+          {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        </div>
+        <div className="space-y-1">
+          <Input placeholder="Email" type="email" {...register("email")} />
+          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+        </div>
+        <div className="space-y-1">
+          <Input placeholder="Password" type="password" {...register("password")} />
+          {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+        </div>
+        {errors.root && <p className="text-sm text-destructive">{errors.root.message}</p>}
+        <Button type="submit" className="w-full" disabled={mutation.isPending}>
+          {mutation.isPending ? "Creating account..." : "Create account"}
+        </Button>
+        <p className="text-center text-sm text-muted-foreground">
+          Already have an account? <Link to="/login" className="underline underline-offset-4">Log in</Link>
+        </p>
       </form>
     </div>
   )

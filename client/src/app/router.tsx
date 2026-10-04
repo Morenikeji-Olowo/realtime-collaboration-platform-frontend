@@ -9,6 +9,7 @@ export function AppRouter() {
       <Routes>
         <Route element={<RequireGuest />}>
           <Route path="/login" element={<Pages.Login />} />
+          <Route path="/signup" element={<Pages.Signup />} />
           <Route path="/forgot-password" element={<Pages.ForgotPassword />} />
           <Route path="/reset-password" element={<Pages.ResetPassword />} />
         </Route>

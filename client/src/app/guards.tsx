@@ -1,18 +1,21 @@
 import { Navigate, Outlet, useLocation, useParams } from "react-router"
 import { useAuthStatus } from "@/app/use-auth-status"
 import { useWorkspaces } from "@/features/workspaces/hooks/use-workspaces"
+import { setPostLoginRedirect } from "@/lib/post-login-redirect"
 
 export function RequireAuth() {
   const status = useAuthStatus()
   const location = useLocation()
 
   if (status === "loading") return null
-  if (status === "guest") return <Navigate to="/login" state={{ from: location }} replace />
+  if (status === "guest") {
+    setPostLoginRedirect(location.pathname) // idempotent, safe even under StrictMode's double-invoke
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
   if (status === "unverified") return <Navigate to="/verify" replace />
 
   return <Outlet />
 }
-
 export function RequireGuest() {
   const status = useAuthStatus()
 
@@ -60,3 +63,4 @@ export function RequireWorkspaceMembership() {
 
   return <Outlet />
 }
+
