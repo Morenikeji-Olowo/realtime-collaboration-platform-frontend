@@ -1,6 +1,7 @@
 import { EditorContent } from "@tiptap/react"
 import { useParams } from "react-router"
 import { useDocumentEditor } from "@/features/documents/hooks/use-document-editor"
+import { EditorToolbar } from "@/features/documents/components/editor-toolbar"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function DocumentEditorView() {
@@ -8,11 +9,7 @@ export function DocumentEditorView() {
   const { editor, status, error } = useDocumentEditor(documentId!)
 
   if (status === "error") {
-    return (
-      <div className="p-8 text-sm text-destructive">
-        {error ?? "Couldn't open this document."}
-      </div>
-    )
+    return <div className="p-8 text-sm text-destructive">{error ?? "Couldn't open this document."}</div>
   }
 
   if (status === "connecting" || !editor) {
@@ -26,14 +23,15 @@ export function DocumentEditorView() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl p-8">
-      <div className="mb-4 flex items-center justify-between text-xs text-muted-foreground">
-        {/* Honest, not a "Saved" checkmark — there's no flush-complete event
-            from the backend, only a ~5s background save on a timer we can't
-            observe directly. Claiming "Saved" would be a guess dressed as fact. */}
-        <span>Live · autosaves periodically</span>
+    <div className="flex h-full flex-col">
+      <EditorToolbar editor={editor} />
+      <div className="mx-auto w-full max-w-3xl flex-1 overflow-auto p-8">
+        <div className="mb-4 text-xs text-muted-foreground">Live · autosaves periodically</div>
+        <EditorContent
+          editor={editor}
+          className="prose dark:prose-invert max-w-none [&_.ProseMirror]:min-h-[60vh] [&_.ProseMirror]:outline-none"
+        />
       </div>
-      <EditorContent editor={editor} className="prose prose-invert max-w-none focus:outline-none" />
     </div>
   )
 }

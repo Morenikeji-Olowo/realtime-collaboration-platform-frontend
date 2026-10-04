@@ -22,7 +22,7 @@ createRoot(document.getElementById('root')!).render(
           </AuthBootstrap>
         </QueryClientProvider>
       </TooltipProvider>
+      <Toaster />
     </ThemeProvider>
-    <Toaster />
   </StrictMode>,
 )

@@ -12,7 +12,10 @@ export function ensureSocketConnected(token: string) {
   if (socket && connectedToken === token) return socket
   if (socket) socket.disconnect()
   connectedToken = token
-  socket = io(env.VITE_API_URL, { auth: { token } })
+  socket = io(env.VITE_API_URL, {
+    auth: { token },
+    transports: ["websocket"],
+  })
   return socket
 }
 

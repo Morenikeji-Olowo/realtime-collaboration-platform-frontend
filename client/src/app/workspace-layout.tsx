@@ -16,6 +16,8 @@ import {
 import { useWorkspaceRoom } from "@/app/use-workspace-room";
 import { ConnectionStatus } from "@/app/connection-status";
 
+import { ModeToggle } from "@/components/mode-toggle"
+
 export function WorkspaceLayout() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   useWorkspaceRoom(workspaceId);
@@ -30,11 +32,12 @@ export function WorkspaceLayout() {
           <div className="flex h-full">
             <div className="flex flex-1 flex-col">
               <header className="flex h-12 items-center gap-2 border-b px-3">
-                <SidebarTrigger />
-                <div className="ml-auto">
-                  <ConnectionStatus />
-                </div>
-              </header>
+              <SidebarTrigger />
+              <div className="ml-auto flex items-center gap-2">
+                <ConnectionStatus />
+                <ModeToggle />
+              </div>
+            </header>
               <div className="flex-1 overflow-auto">
                 <Outlet />
               </div>

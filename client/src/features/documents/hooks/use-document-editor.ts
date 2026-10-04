@@ -16,16 +16,21 @@ export function useDocumentEditor(documentId: string) {
 
   if (!ydocRef.current) ydocRef.current = new Y.Doc()
 
-  const editor = useEditor(
-    {
-      extensions: [
-        StarterKit.configure({ undoRedo: false }), // Yjs owns undo/redo history in collaborative mode
-        Collaboration.configure({ document: ydocRef.current }),
-      ],
-      editable: status === "synced",
-    },
-    [status]
-  )
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({ undoRedo: false }), // Yjs owns history; v3 renamed from `history`
+      Collaboration.configure({ document: ydocRef.current }),
+    ],
+    editable: false,
+    immediatelyRender: false,
+  })
+
+  // Not keyed on [status] — the editor instance is created exactly once.
+  // Flipping editable imperatively avoids tearing down and rebuilding the
+  // whole editor (and its input rules) every time sync state changes.
+  React.useEffect(() => {
+    editor?.setEditable(status === "synced")
+  }, [editor, status])
 
   React.useEffect(() => {
     if (!session?.access_token || !ydocRef.current) return
@@ -38,9 +43,7 @@ export function useDocumentEditor(documentId: string) {
     providerRef.current = provider
     provider.join()
 
-    return () => {
-      provider.destroy()
-    }
+    return () => provider.destroy()
   }, [documentId, session?.access_token])
 
   return { editor, status, error }
