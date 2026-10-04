@@ -52,6 +52,9 @@ import { FileList } from "@/features/files/components/file-list"
 import { supabase } from "@/lib/supabase/client"
 import { forgotPasswordSchema, type ForgotPasswordInput } from "@/features/auth/schemas/forgot-password-schema"
 import { resetPasswordSchema, type ResetPasswordInput } from "@/features/auth/schemas/reset-password-schema"
+import { signupSchema, type SignupInput } from "@/features/auth/schemas/signup-schema"
+import { signup } from "@/features/auth/api/auth-api"
+import { consumePostLoginRedirect } from "@/lib/post-login-redirect"
 
 const make = (name: string) => () => <div className="p-8">{name}</div>
 
